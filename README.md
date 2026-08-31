@@ -12,7 +12,7 @@ python3 ./fetch_repos.py
 
 ### Tool Chains
 
-[ESP-IDF v5.4.2](https://docs.espressif.com/projects/esp-idf/en/v5.4.2/esp32s3/index.html)
+[ESP-IDF v5.5.2](https://docs.espressif.com/projects/esp-idf/en/v5.5.2/esp32s3/index.html)
 
 ### Build
 

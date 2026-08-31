@@ -2,7 +2,7 @@
 dependencies:
   ## Required IDF version
   idf:
-    version: '>=4.1.0'
+    version: '>=5.5.2,<5.6'
   # # Put list of dependencies here
   # # For components maintained by Espressif:
   # component: "~1.0.0"
@@ -14,6 +14,10 @@ dependencies:
   #   # `public` flag doesn't have an effect dependencies of the `main` component.
   #   # All dependencies of `main` are public by default.
   #   public: true
-  espressif/esp-now: ^2.5.2
-  espressif/esp_tinyusb: ^1.1
-  jgromes/radiolib: ^7.2.1
+  # Pin component versions so the IDF migration does not also pull unrelated
+  # library upgrades. ESP-NOW 2.5.3 adds compatibility with the IDF 5.5
+  # esp_now_send_cb_t signature.
+  espressif/cmake_utilities: '==0.5.3'
+  espressif/esp-now: '==2.5.3'
+  espressif/esp_tinyusb: '==1.7.6~1'
+  jgromes/radiolib: '==7.2.1'
