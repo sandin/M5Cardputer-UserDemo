@@ -1,0 +1,84 @@
+flowchart TD
+    A["设备启动<br/>app_main()"] --> B["GetHAL().init()"]
+    B --> B1["M5.begin()<br/>显示、音频、I2C、键盘、设置、SPI"]
+    B1 --> C["初始化 UI HAL 时间接口"]
+
+    C --> D["installApp()"]
+    D --> D1["创建 Launcher 和各个 App"]
+    D1 --> D2["_new_ability_list"]
+
+    D2 --> E["主循环 while(1)"]
+    E --> E1["feedTheDog()<br/>让出一点 CPU 时间"]
+    E1 --> E2["GetHAL().update()"]
+    E2 --> E3["M5.update()"]
+    E2 --> E4["Keyboard::update()"]
+    E2 --> E5["capLora868.update()"]
+
+    E4 --> K0["TCA8418 FIFO<br/>取出一个事件"]
+    K0 --> K1["解析按下/松开<br/>与矩阵坐标"]
+    K1 --> K2["remap()<br/>转换物理坐标"]
+    K2 --> K3["保存并广播<br/>原始事件"]
+    K3 --> K4["更新 Fn/Shift/Ctrl/<br/>Alt/Opt 状态"]
+    K4 --> K5["convertToKeyEvent()"]
+    K5 --> K6["保存并广播<br/>逻辑事件"]
+
+    K3 --> R1["LauncherMenu<br/>读取原始坐标"]
+    K6 --> R2["键盘状态栏<br/>读取修饰键状态"]
+    K6 --> R3["文本输入 App/View<br/>读取逻辑键值"]
+
+    E2 --> E6["GetMooncake().update()"]
+    E6 --> M0["AbilityManager<br/>更新所有 Ability"]
+    M0 --> M1{"App 当前状态"}
+    M1 --> M2["StateGoCreate<br/>调用 onCreate()"]
+    M1 --> M3["StateGoOpen<br/>调用 onOpen()"]
+    M1 --> M4["StateRunning<br/>调用 onRunning()"]
+    M1 --> M5["StateGoClose<br/>调用 onClose()"]
+    M1 --> M6["StateSleeping<br/>等待再次 open"]
+
+    M2 --> L0["Launcher::onCreate()"]
+    L0 --> L1["boot_anim()"]
+    L1 --> L2["start_menu()"]
+    L2 --> L3["start_system_bar()"]
+    L3 --> L4["start_keyboard_bar()"]
+    L4 --> L5["open()<br/>让 Launcher 进入运行状态"]
+
+    M4 --> L6["Launcher::onRunning()"]
+    L6 --> L7{"running_app_id >= 0?"}
+    L7 -->|否| L8["update_menu()<br/>处理菜单和绘制"]
+    L7 -->|是| L9["只更新系统栏<br/>检查前台 App 是否关闭"]
+
+    R1 --> O0["选择图标并按 Enter"]
+    O0 --> O1["handle_app_open()"]
+    O1 --> O2["Mooncake.openApp(appId)"]
+    O2 --> O3["目标 App: StateGoOpen"]
+    O3 --> O4["ANIM_APP_OPEN()"]
+    O4 --> M3
+
+    M4 --> X0["App 自己调用 close()<br/>例如 Home 按钮"]
+    X0 --> M5
+    M5 --> X1["App 进入 StateSleeping"]
+    X1 --> L9
+    L9 --> X2["running_app_id = -1"]
+    X2 --> X3["ANIM_APP_CLOSE()"]
+    X3 --> L8
+
+    L8 --> C1["绘制到主 canvas"]
+    L3 --> C2["绘制到 canvasSystemBar"]
+    L4 --> C3["绘制到 canvasKeyboardBar"]
+    C1 --> P["pushCanvas()"]
+    C2 --> P2["pushCanvasSystemBar()"]
+    C3 --> P3["pushCanvasKeyboardBar()"]
+
+    classDef boot fill:#d9f2ff,stroke:#1677a8,color:#123;
+    classDef loop fill:#e8f5e9,stroke:#388e3c,color:#123;
+    classDef input fill:#fff3cd,stroke:#b8860b,color:#321;
+    classDef framework fill:#f3e5f5,stroke:#7b1fa2,color:#321;
+    classDef launcher fill:#ffe0b2,stroke:#e65100,color:#321;
+    classDef output fill:#e0f2f1,stroke:#00796b,color:#123;
+
+    class A,B,B1,C,D,D1,D2 boot;
+    class E,E1,E2,E3,E5,E6 loop;
+    class E4,K0,K1,K2,K3,K4,K5,K6,R1,R2,R3 input;
+    class M0,M1,M2,M3,M4,M5,M6 framework;
+    class L0,L1,L2,L3,L4,L5,L6,L7,L8,L9,O0,O1,O2,O3,O4,X0,X1,X2,X3 launcher;
+    class C1,C2,C3,P,P2,P3 output;
